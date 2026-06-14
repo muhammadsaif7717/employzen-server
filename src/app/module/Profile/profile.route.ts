@@ -8,15 +8,20 @@ import { auth } from "../../middleware/auth";
 const router = Router();
 
 // Ensure the local uploads target folder exists
-const uploadDir = "./uploads";
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
+const isVercel = !!process.env.VERCEL;
+const uploadDir = isVercel ? "/tmp/uploads" : "./uploads";
+try {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+} catch (error) {
+  console.error("Failed to create upload directory:", error);
 }
 
 // Multer storage setup for local document uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/");
+    cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);

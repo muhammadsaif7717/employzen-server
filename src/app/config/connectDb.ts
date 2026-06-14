@@ -4,6 +4,10 @@ import CategoryModel from "../module/Category/category.model";
 
 export const connectDb = async (): Promise<void> => {
   try {
+    if (mongoose.connection.readyState >= 1) {
+      console.log("MongoDB already connected or connecting");
+      return;
+    }
     await mongoose.connect(env.mongoUri);
     console.log("MongoDB connected successfully");
 

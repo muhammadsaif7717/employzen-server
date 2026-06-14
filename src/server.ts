@@ -61,6 +61,11 @@ const bootstrap = async () => {
     // Connect to database
     await connectDb();
 
+    if (process.env.VERCEL) {
+      console.log("Vercel environment detected. Bypassing server listen.");
+      return;
+    }
+
     let currentPort = Number(env.port) || 5000;
 
     const startServer = (port: number) => {
@@ -106,3 +111,6 @@ process.on("uncaughtException", (error) => {
 bootstrap();
 
 export { io };
+
+export default app;
+
