@@ -11,4 +11,9 @@ export const env = {
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || "default_jwt_refresh_secret",
   clientUrl: process.env.CLIENT_URL || "http://localhost:3000",
   nodeEnv: process.env.NODE_ENV || "development",
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    apiSecret: process.env.CLOUDINARY_API_SECRET,
+  },
 };

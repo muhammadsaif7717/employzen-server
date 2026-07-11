@@ -59,7 +59,10 @@ const getCandidateApplicationsFromDb = async (userId: string) => {
   return ApplicationModel.find({ candidate: candidate._id })
     .populate({
       path: "job",
-      populate: { path: "company" },
+      populate: [
+        { path: "company" },
+        { path: "postedBy" },
+      ],
     })
     .sort({ createdAt: -1 });
 };

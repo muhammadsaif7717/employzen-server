@@ -8,7 +8,7 @@ const applyJob = catchAsync(async (req: Request, res: Response) => {
   const result = await ApplicationServices.applyJobIntoDb(userId!, req.body);
 
   sendResponse(res, {
-    statusCode: 21, // 201 Created
+    statusCode: 201, // 201 Created
     success: true,
     message: "Application submitted successfully",
     data: result,
@@ -20,7 +20,7 @@ const getCandidateApplications = catchAsync(async (req: Request, res: Response) 
   const result = await ApplicationServices.getCandidateApplicationsFromDb(userId!);
 
   sendResponse(res, {
-    statusCode: 20, // 200 OK
+    statusCode: 200, // 200 OK
     success: true,
     message: "Applications fetched successfully",
     data: result,
@@ -33,7 +33,7 @@ const getJobApplicants = catchAsync(async (req: Request, res: Response) => {
   const result = await ApplicationServices.getJobApplicantsFromDb(employerUserId!, jobId as string);
 
   sendResponse(res, {
-    statusCode: 20, // 200 OK
+    statusCode: 200, // 200 OK
     success: true,
     message: "Job applicants fetched successfully",
     data: result,
@@ -47,7 +47,7 @@ const updateApplicationStatus = catchAsync(async (req: Request, res: Response) =
   const result = await ApplicationServices.updateApplicationStatusInDb(employerUserId!, id as string, status);
 
   sendResponse(res, {
-    statusCode: 20, // 200 OK
+    statusCode: 200, // 200 OK
     success: true,
     message: `Application status updated to ${status} successfully`,
     data: result,

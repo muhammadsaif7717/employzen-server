@@ -9,7 +9,7 @@ const getMessageHistory = catchAsync(async (req: Request, res: Response) => {
   const result = await ChatServices.getMessageHistoryFromDb(userId!, partnerId as string);
 
   sendResponse(res, {
-    statusCode: 20, // 200 OK
+    statusCode: 200, // 200 OK
     success: true,
     message: "Chat history loaded successfully",
     data: result,
@@ -21,7 +21,7 @@ const getChatRooms = catchAsync(async (req: Request, res: Response) => {
   const result = await ChatServices.getChatRoomsFromDb(userId!);
 
   sendResponse(res, {
-    statusCode: 20, // 200 OK
+    statusCode: 200, // 200 OK
     success: true,
     message: "Conversation rooms loaded successfully",
     data: result,

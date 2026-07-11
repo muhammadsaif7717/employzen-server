@@ -10,7 +10,7 @@ const getProfile = catchAsync(async (req: Request, res: Response) => {
   const result = await ProfileServices.getProfileFromDb(userId!, role!);
 
   sendResponse(res, {
-    statusCode: 20, // 200 OK
+    statusCode: 200, // 200 OK
     success: true,
     message: "Profile fetched successfully",
     data: result,
@@ -23,7 +23,7 @@ const updateProfile = catchAsync(async (req: Request, res: Response) => {
   const result = await ProfileServices.updateProfileInDb(userId!, role!, req.body);
 
   sendResponse(res, {
-    statusCode: 20, // 200 OK
+    statusCode: 200, // 200 OK
     success: true,
     message: "Profile updated successfully",
     data: result,
@@ -35,11 +35,11 @@ const uploadResume = catchAsync(async (req: Request, res: Response) => {
     throw new AppError(400, "Please upload a valid PDF or Word document");
   }
 
-  // Construct absolute static file server path
-  const fileUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+  // The file is now hosted on Cloudinary, so req.file.path contains the URL directly
+  const fileUrl = req.file.path;
 
   sendResponse(res, {
-    statusCode: 20, // 200 OK
+    statusCode: 200, // 200 OK
     success: true,
     message: "Resume uploaded successfully",
     data: {

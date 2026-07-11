@@ -7,25 +7,27 @@ import { auth } from "../../middleware/auth";
 
 const router = Router();
 
-// Ensure the local uploads target folder exists
-const isVercel = !!process.env.VERCEL;
-const uploadDir = isVercel ? "/tmp/uploads" : "./uploads";
-try {
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-} catch (error) {
-  console.error("Failed to create upload directory:", error);
-}
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { env } from "../../config/env";
 
-// Multer storage setup for local document uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: env.cloudinary.cloudName || "",
+  api_key: env.cloudinary.apiKey || "",
+  api_secret: env.cloudinary.apiSecret || "",
+});
+
+// Cloudinary storage setup for document uploads
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: async (req, file) => {
+    return {
+      folder: "resumes",
+      resource_type: "raw", // Needed for PDFs and DOCX files
+      format: path.extname(file.originalname).substring(1), // Optional: specify format
+      public_id: file.fieldname + "-" + Date.now() + "-" + Math.round(Math.random() * 1e9),
+    };
   },
 });
 
@@ -40,7 +42,6 @@ const upload = multer({
   },
   limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max
 });
-
 router.get("/", auth(), ProfileControllers.getProfile);
 
 router.patch("/", auth(), ProfileControllers.updateProfile);

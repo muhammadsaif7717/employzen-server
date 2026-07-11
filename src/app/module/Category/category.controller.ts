@@ -4,10 +4,10 @@ import { sendResponse } from "../../shared/sendResponse";
 import CategoryModel from "./category.model";
 
 const getAllCategories = catchAsync(async (req: Request, res: Response) => {
-  const categories = await CategoryModel.find().sort({ name: 1 });
+  const categories = await CategoryModel.find();
 
   sendResponse(res, {
-    statusCode: 20, // 200 OK
+    statusCode: 200, // 200 OK
     success: true,
     message: "Categories fetched successfully",
     data: categories,

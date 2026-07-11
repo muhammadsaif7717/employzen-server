@@ -29,7 +29,7 @@ const register = catchAsync(async (req: Request, res: Response) => {
   });
 
   sendResponse(res, {
-    statusCode: 21, // 201 Created
+    statusCode: 201, // 201 Created
     success: true,
     message: "User registered successfully",
     data: { user, profile },
@@ -57,7 +57,7 @@ const login = catchAsync(async (req: Request, res: Response) => {
   });
 
   sendResponse(res, {
-    statusCode: 20, // 200 OK
+    statusCode: 200, // 200 OK
     success: true,
     message: "User logged in successfully",
     data: { user, profile },
@@ -75,7 +75,7 @@ const logout = catchAsync(async (req: Request, res: Response) => {
   res.clearCookie("refreshToken", cookieOptions);
 
   sendResponse(res, {
-    statusCode: 20, // 200 OK
+    statusCode: 200, // 200 OK
     success: true,
     message: "Logged out successfully",
     data: null,
@@ -100,7 +100,7 @@ const getMe = catchAsync(async (req: Request, res: Response) => {
   }
 
   sendResponse(res, {
-    statusCode: 20,
+    statusCode: 200,
     success: true,
     message: "User profile fetched successfully",
     data: {

@@ -75,17 +75,49 @@ const getChatRoomsFromDb = async (userId: string) => {
       
       let profileName = "User";
       let avatarUrl = "";
+      let contextJobTitle = "";
+
+      const CandidateModel = mongoose.model("Candidate");
+      const EmployerModel = mongoose.model("Employer");
+      const ApplicationModel = mongoose.model("Application");
+      const JobModel = mongoose.model("Job");
+
+      let candidateProfile = null;
+      let employerProfile = null;
 
       if (partner?.role === "candidate") {
-        const CandidateModel = mongoose.model("Candidate");
-        const candidate = await CandidateModel.findOne({ user: partner._id });
-        profileName = candidate?.name || "Candidate";
-        avatarUrl = candidate?.avatarUrl || "";
+        candidateProfile = await CandidateModel.findOne({ user: partner._id });
+        employerProfile = await EmployerModel.findOne({ user: userObjectId });
+        profileName = candidateProfile?.name || "Candidate";
+        avatarUrl = candidateProfile?.avatarUrl || "";
       } else if (partner?.role === "employer") {
-        const EmployerModel = mongoose.model("Employer");
-        const employer = await EmployerModel.findOne({ user: partner._id });
-        profileName = employer?.name || "Employer";
-        avatarUrl = employer?.avatarUrl || "";
+        employerProfile = await EmployerModel.findOne({ user: partner._id });
+        candidateProfile = await CandidateModel.findOne({ user: userObjectId });
+        profileName = employerProfile?.name || "Employer";
+        avatarUrl = employerProfile?.avatarUrl || "";
+      }
+
+      if (candidateProfile && employerProfile) {
+        try {
+          const employerJobs = await JobModel.find({ postedBy: employerProfile._id }).select("_id title");
+          const jobIds = employerJobs.map((j: any) => j._id);
+
+          const application = await ApplicationModel.findOne({
+            candidate: candidateProfile._id,
+            job: { $in: jobIds },
+          }).sort({ createdAt: -1 });
+
+          if (application) {
+            const matchedJob = employerJobs.find(
+              (j: any) => j._id.toString() === application.job.toString()
+            );
+            if (matchedJob) {
+              contextJobTitle = matchedJob.title;
+            }
+          }
+        } catch (e) {
+          console.error("Failed to fetch context job title for chat", e);
+        }
       }
 
       return {
@@ -93,6 +125,7 @@ const getChatRoomsFromDb = async (userId: string) => {
         partnerName: profileName,
         partnerAvatar: avatarUrl,
         partnerRole: partner?.role,
+        contextJobTitle: contextJobTitle,
         lastMessage: room.lastMessage,
         lastMessageTime: room.lastMessageTime,
         unreadCount: room.unreadCount,
