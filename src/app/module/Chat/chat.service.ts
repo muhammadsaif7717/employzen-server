@@ -142,4 +142,27 @@ const getChatRoomsFromDb = async (userId: string) => {
 export const ChatServices = {
   getMessageHistoryFromDb,
   getChatRoomsFromDb,
+  sendMessage: async (sender: string, receiver: string, content: string) => {
+    // Save message to database
+    const newMessage = await MessageModel.create({
+      sender: new Types.ObjectId(sender),
+      receiver: new Types.ObjectId(receiver),
+      content,
+    });
+
+    // Create notification for receiver
+    try {
+      const { NotificationServices } = require("../Notification/notification.service");
+      await NotificationServices.createNotificationInDb({
+        recipient: new Types.ObjectId(receiver),
+        message: "You have a new message",
+        type: "CHAT",
+        link: `/chat?partnerId=${sender}`,
+      });
+    } catch (notifyError) {
+      console.error("Chat notification error:", notifyError);
+    }
+
+    return newMessage;
+  }
 };

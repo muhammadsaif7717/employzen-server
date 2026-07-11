@@ -28,7 +28,22 @@ const getChatRooms = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const sendMessage = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+  const { receiver, content } = req.body;
+  
+  const result = await ChatServices.sendMessage(userId!, receiver, content);
+
+  sendResponse(res, {
+    statusCode: 200, 
+    success: true,
+    message: "Message sent successfully",
+    data: result,
+  });
+});
+
 export const ChatControllers = {
   getMessageHistory,
   getChatRooms,
+  sendMessage,
 };
