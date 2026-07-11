@@ -24,6 +24,12 @@ io.on("connection", (socket) => {
     console.log(`Socket ${socket.id} joined room ${roomName}`);
   });
 
+  // Register user for notifications
+  socket.on("register_user", (userId: string) => {
+    socket.join(userId);
+    console.log(`Socket ${socket.id} registered for user ${userId}`);
+  });
+
   // Handle incoming chat messages
   socket.on("send_message", async (data: {
     sender: string;
@@ -45,6 +51,20 @@ io.on("connection", (socket) => {
 
       // Broadcast message to everyone in the room
       io.to(roomName).emit("receive_message", newMessage);
+
+      // Create notification for receiver
+      try {
+        const { NotificationServices } = require("./app/module/Notification/notification.service");
+        const notification = await NotificationServices.createNotificationInDb({
+          recipient: new mongoose.Types.ObjectId(receiver),
+          message: "You have a new message",
+          type: "CHAT",
+          link: `/chat?partnerId=${sender}`,
+        });
+        io.to(receiver).emit("new_notification", notification);
+      } catch (notifyError) {
+        console.error("Socket notification error:", notifyError);
+      }
     } catch (error) {
       console.error("Socket send_message error:", error);
       socket.emit("error", { message: "Message could not be sent" });

@@ -32,6 +32,22 @@ const updateUserStatusInDb = async (userId: string, status: "active" | "blocked"
   if (!user) {
     throw new AppError(404, "User not found");
   }
+
+  // Notify User
+  try {
+    const { NotificationServices } = require("../Notification/notification.service");
+    const { io } = require("../../../server");
+    const notification = await NotificationServices.createNotificationInDb({
+      recipient: userId,
+      message: `Your account has been ${status}`,
+      type: "SYSTEM",
+      link: "/",
+    });
+    io.to(userId.toString()).emit("new_notification", notification);
+  } catch (error) {
+    console.error("User status notification error:", error);
+  }
+
   return user;
 };
 

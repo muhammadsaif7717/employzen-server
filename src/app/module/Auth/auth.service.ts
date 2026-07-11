@@ -139,6 +139,21 @@ const loginUser = async (payload: any) => {
     "7d"
   );
 
+  // Create login notification
+  try {
+    const { NotificationServices } = require("../Notification/notification.service");
+    const { io } = require("../../../server");
+    const notification = await NotificationServices.createNotificationInDb({
+      recipient: user._id,
+      message: "Login successful",
+      type: "LOGIN",
+      link: "/profile",
+    });
+    io.to(user._id.toString()).emit("new_notification", notification);
+  } catch (error) {
+    console.error("Login notification error:", error);
+  }
+
   return {
     user: {
       _id: user._id,

@@ -66,6 +66,8 @@ const updateProfileInDb = async (userId: string, role: string, payload: any) => 
     await user.save();
   }
 
+  let updatedProfile: any;
+
   // 2. Update role-specific profile details
   if (role === "candidate") {
     const candidate = await CandidateModel.findOneAndUpdate(
@@ -78,7 +80,7 @@ const updateProfileInDb = async (userId: string, role: string, payload: any) => 
     }
 
     const user = await UserModel.findById(userId);
-    return {
+    updatedProfile = {
       ...candidate.toObject(),
       email: user?.email,
     };
@@ -113,7 +115,7 @@ const updateProfileInDb = async (userId: string, role: string, payload: any) => 
 
     const updatedEmployer = await EmployerModel.findOne({ user: userId }).populate("company");
     const user = await UserModel.findById(userId);
-    return {
+    updatedProfile = {
       ...updatedEmployer!.toObject(),
       email: user?.email,
     };
@@ -129,7 +131,7 @@ const updateProfileInDb = async (userId: string, role: string, payload: any) => 
     if (avatarUrl) user.avatarUrl = avatarUrl;
     await user.save();
 
-    return {
+    updatedProfile = {
       _id: userId,
       email: user.email,
       role: "admin",
@@ -137,9 +139,26 @@ const updateProfileInDb = async (userId: string, role: string, payload: any) => 
       phone: user.phone || "",
       avatarUrl: user.avatarUrl || "",
     };
+  } else {
+    throw new AppError(400, "Profile updates not supported for this role");
   }
 
-  throw new AppError(400, "Profile updates not supported for this role");
+  // Send Notification
+  try {
+    const { NotificationServices } = require("../Notification/notification.service");
+    const { io } = require("../../../server");
+    const notification = await NotificationServices.createNotificationInDb({
+      recipient: userId,
+      message: "Profile updated successfully",
+      type: "PROFILE",
+      link: "/profile",
+    });
+    io.to(userId.toString()).emit("new_notification", notification);
+  } catch (error) {
+    console.error("Profile update notification error:", error);
+  }
+
+  return updatedProfile;
 };
 
 export const ProfileServices = {

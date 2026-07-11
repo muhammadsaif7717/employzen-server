@@ -47,6 +47,36 @@ const applyJobIntoDb = async (userId: string, payload: any) => {
     $inc: { applicationsCount: 1 },
   });
 
+  // 6. Send Notifications
+  try {
+    const { NotificationServices } = require("../Notification/notification.service");
+    const { io } = require("../../../server");
+    const populatedJob = await JobModel.findById(jobId).populate("postedBy");
+    const employerUserId = (populatedJob?.postedBy as any)?.user;
+
+    // Notify Candidate
+    const candidateNotification = await NotificationServices.createNotificationInDb({
+      recipient: userId,
+      message: `Your application for ${job.title} was sent successfully`,
+      type: "APPLICATION",
+      link: "/dashboard",
+    });
+    io.to(userId.toString()).emit("new_notification", candidateNotification);
+
+    // Notify Employer
+    if (employerUserId) {
+      const employerNotification = await NotificationServices.createNotificationInDb({
+        recipient: employerUserId,
+        message: `New application received for ${job.title}`,
+        type: "APPLICATION",
+        link: "/dashboard",
+      });
+      io.to(employerUserId.toString()).emit("new_notification", employerNotification);
+    }
+  } catch (error) {
+    console.error("Application notification error:", error);
+  }
+
   return application;
 };
 
@@ -98,7 +128,7 @@ const updateApplicationStatusInDb = async (
     throw new AppError(404, "Employer profile not found");
   }
 
-  const application = await ApplicationModel.findById(applicationId).populate("job");
+  const application = await ApplicationModel.findById(applicationId).populate("job").populate("candidate");
   if (!application) {
     throw new AppError(404, "Job application not found");
   }
@@ -115,6 +145,24 @@ const updateApplicationStatusInDb = async (
 
   application.status = status;
   await application.save();
+
+  // Notify Candidate
+  try {
+    const candidateUserId = (application.candidate as any)?.user;
+    if (candidateUserId) {
+      const { NotificationServices } = require("../Notification/notification.service");
+      const { io } = require("../../../server");
+      const candidateNotification = await NotificationServices.createNotificationInDb({
+        recipient: candidateUserId,
+        message: `Your application for ${job.title} has been marked as ${status}`,
+        type: "APPLICATION",
+        link: "/candidate",
+      });
+      io.to(candidateUserId.toString()).emit("new_notification", candidateNotification);
+    }
+  } catch (error) {
+    console.error("Application status notification error:", error);
+  }
 
   return application;
 };

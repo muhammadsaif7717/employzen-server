@@ -6,6 +6,7 @@ import { ProfileRoutes } from "../module/Profile/profile.route";
 import { ChatRoutes } from "../module/Chat/chat.route";
 import { CategoryRoutes } from "../module/Category/category.route";
 import { UserRoutes } from "../module/User/user.route";
+import { NotificationRoutes } from "../module/Notification/notification.route";
 
 const router = Router();
 
@@ -16,6 +17,7 @@ router.use("/profile", ProfileRoutes);
 router.use("/chat", ChatRoutes);
 router.use("/categories", CategoryRoutes);
 router.use("/users", UserRoutes);
+router.use("/notifications", NotificationRoutes);
 
 export default router;
 

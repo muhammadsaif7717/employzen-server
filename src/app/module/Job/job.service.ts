@@ -2,6 +2,7 @@ import { Schema, Types } from "mongoose";
 import JobModel from "./job.model";
 import EmployerModel from "../Employer/employer.model";
 import CompanyModel from "../Company/company.model";
+import UserModel from "../User/user.model";
 import { AppError } from "../../errorHelpers/AppError";
 
 const createJobIntoDb = async (userId: string, payload: any) => {
@@ -27,6 +28,35 @@ const createJobIntoDb = async (userId: string, payload: any) => {
   await CompanyModel.findByIdAndUpdate(employer.company, {
     $push: { jobs: job._id },
   });
+
+  // 4. Send Notifications
+  try {
+    const { NotificationServices } = require("../Notification/notification.service");
+    const { io } = require("../../../server");
+    
+    // Notify Employer
+    const employerNotification = await NotificationServices.createNotificationInDb({
+      recipient: userId,
+      message: `Your job "${job.title}" has been posted and is pending review`,
+      type: "JOB_POST",
+      link: "/dashboard",
+    });
+    io.to(userId.toString()).emit("new_notification", employerNotification);
+
+    // Notify Admins
+    const admins = await UserModel.find({ role: "admin" });
+    for (const admin of admins) {
+      const adminNotification = await NotificationServices.createNotificationInDb({
+        recipient: admin._id,
+        message: `New job posting "${job.title}" requires review`,
+        type: "JOB_POST",
+        link: "/admin/jobs",
+      });
+      io.to(admin._id.toString()).emit("new_notification", adminNotification);
+    }
+  } catch (error) {
+    console.error("Job post notification error:", error);
+  }
 
   return job;
 };
@@ -123,6 +153,26 @@ const updateJobStatusInDb = async (jobId: string, status: "Pending" | "Approved"
     throw new AppError(404, "Job listing not found");
   }
 
+  // Notify Employer
+  try {
+    const { NotificationServices } = require("../Notification/notification.service");
+    const { io } = require("../../../server");
+    const populatedJob = await JobModel.findById(jobId).populate("postedBy");
+    const employerUserId = (populatedJob?.postedBy as any)?.user;
+
+    if (employerUserId) {
+      const employerNotification = await NotificationServices.createNotificationInDb({
+        recipient: employerUserId,
+        message: `Your job "${job.title}" has been ${status.toLowerCase()}`,
+        type: "JOB_STATUS",
+        link: `/jobs/${job._id}`,
+      });
+      io.to(employerUserId.toString()).emit("new_notification", employerNotification);
+    }
+  } catch (error) {
+    console.error("Job status notification error:", error);
+  }
+
   return job;
 };
 
@@ -152,6 +202,26 @@ const deleteJobFromDb = async (jobId: string) => {
 
   // 3. Delete the job listing
   await JobModel.findByIdAndDelete(jobId);
+
+  // 4. Notify Employer
+  try {
+    const { NotificationServices } = require("../Notification/notification.service");
+    const { io } = require("../../../server");
+    // Find the employer user to notify
+    const employerProfile = await require("../Employer/employer.model").default.findById(job.postedBy);
+    const employerUserId = employerProfile?.user;
+    if (employerUserId) {
+      const employerNotification = await NotificationServices.createNotificationInDb({
+        recipient: employerUserId,
+        message: `Your job listing "${job.title}" has been deleted.`,
+        type: "JOB_STATUS",
+        link: "/dashboard",
+      });
+      io.to(employerUserId.toString()).emit("new_notification", employerNotification);
+    }
+  } catch (error) {
+    console.error("Job deletion notification error:", error);
+  }
 
   return { id: jobId };
 };
