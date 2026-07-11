@@ -89,7 +89,7 @@ const bootstrap = async () => {
     let currentPort = Number(env.port) || 5000;
 
     const startServer = (port: number) => {
-      server.listen(port);
+      server.listen(port, "0.0.0.0");
     };
 
     server.once("listening", () => {
