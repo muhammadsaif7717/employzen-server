@@ -8,7 +8,7 @@ import { generateToken } from "../../utils/jwt";
 import { env } from "../../config/env";
 
 const registerUser = async (payload: any) => {
-  const { email, password, role, name, phone, title, companyName } = payload;
+  const { email, password, role, name, phone, title, companyName, industry } = payload;
 
   // Check if user already exists
   const existingUser = await UserModel.findOne({ email });
@@ -41,6 +41,7 @@ const registerUser = async (payload: any) => {
     // 1. Create company
     const newCompany = await CompanyModel.create({
       name: companyName,
+      industry: industry,
       jobs: [],
     });
 

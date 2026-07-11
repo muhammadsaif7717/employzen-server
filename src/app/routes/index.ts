@@ -8,6 +8,8 @@ import { CategoryRoutes } from "../module/Category/category.route";
 import { UserRoutes } from "../module/User/user.route";
 import { NotificationRoutes } from "../module/Notification/notification.route";
 
+import { EmployerRoutes } from "../module/Employer/employer.route";
+
 const router = Router();
 
 router.use("/auth", AuthRoutes);
@@ -18,6 +20,7 @@ router.use("/chat", ChatRoutes);
 router.use("/categories", CategoryRoutes);
 router.use("/users", UserRoutes);
 router.use("/notifications", NotificationRoutes);
+router.use("/employers", EmployerRoutes);
 
 export default router;
 
