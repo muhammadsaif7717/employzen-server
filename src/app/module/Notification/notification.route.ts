@@ -6,6 +6,7 @@ const router = Router();
 
 router.get("/", auth("candidate", "employer", "admin"), NotificationControllers.getUserNotifications);
 router.patch("/read-all", auth("candidate", "employer", "admin"), NotificationControllers.markAllAsRead);
+router.delete("/delete-all", auth("candidate", "employer", "admin"), NotificationControllers.deleteAllNotifications);
 router.patch("/:id/read", auth("candidate", "employer", "admin"), NotificationControllers.markAsRead);
 
 export const NotificationRoutes = router;

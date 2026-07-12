@@ -30,9 +30,15 @@ const markAllNotificationsAsReadInDb = async (userId: string) => {
   return result;
 };
 
+const deleteAllNotificationsInDb = async (userId: string) => {
+  const result = await NotificationModel.deleteMany({ recipient: userId });
+  return result;
+};
+
 export const NotificationServices = {
   createNotificationInDb,
   getUserNotificationsFromDb,
   markNotificationAsReadInDb,
   markAllNotificationsAsReadInDb,
+  deleteAllNotificationsInDb,
 };

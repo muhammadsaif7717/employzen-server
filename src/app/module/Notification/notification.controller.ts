@@ -40,8 +40,21 @@ const markAllAsRead = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const deleteAllNotifications = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user!.userId;
+  const result = await NotificationServices.deleteAllNotificationsInDb(userId);
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "All notifications deleted successfully",
+    data: result,
+  });
+});
+
 export const NotificationControllers = {
   getUserNotifications,
   markAsRead,
   markAllAsRead,
+  deleteAllNotifications,
 };
